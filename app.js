@@ -18,8 +18,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 //роутинг
 
 const account = require('./routes/account');
+const posts = require('./routes/posts');
 
 app.use('/account', account);
+app.use('/posts', posts);
 
 
 

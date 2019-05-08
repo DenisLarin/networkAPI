@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+const router = require('./../config/routerConnection');
+const checkToken = require('./../config/jwt');
 
 const jwt = require('jsonwebtoken');
 const tokenSecertKey = require('./../config/config').tokenSecretKey;
@@ -55,7 +55,12 @@ router.post('/login', function (req, res, next) {
                 const payload = {
                     name: result[0].name, surname: result[0].surname, phone: result[0].phone, email: result[0].email
                 };
-                jwt.sign(payload, tokenSecertKey,{audience:"users",issuer:"network",subject:"authorization",expiresIn:"7d"}, (err, token) => {
+                jwt.sign(payload, tokenSecertKey, {
+                    audience: "users",
+                    issuer: "network",
+                    subject: "authorization",
+                    expiresIn: "7d"
+                }, (err, token) => {
                     if (err)
                         res.json({
                             errorName: err.name,
@@ -79,22 +84,5 @@ router.post('/logout', checkToken, function (req, res, next) {
     });
 });
 
-function checkToken(req, res, next) {
-    const token = req.headers.authorization;
-    if(token){
-        jwt.verify(token,tokenSecertKey,(err,decoded)=>{
-           if (err){
-               return res.status(400).send({error:err});
-           }
-           else{
-               next();
-           }
-        });
-    }
-    else {
-        return res.status(401).send({error: 'need authorization'});
-    }
-
-}
 
 module.exports = router;
