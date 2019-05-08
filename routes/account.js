@@ -30,11 +30,11 @@ router.post('/login', function (req, res, next) {
     const user = req.body.user;
     user.password = crypto.createHash('sha256').update(user.password).digest('base64');
 
-    let sql = "SELECT `name`,`surname`,`phone`,`email` FROM users WHERE `phone` = ? and `password` = ?";
+    let sql = "SELECT `userID`,``name`,`surname`,`phone`,`email` FROM users WHERE `phone` = ? and `password` = ?";
     const params = [user.phone, user.password];
 
     if (user.email) {
-        sql = "SELECT `name`,`surname`,`phone`,`email` FROM users WHERE `email` = ? and `password` = ?";
+        sql = "SELECT `userID`,`name`,`surname`,`phone`,`email` FROM users WHERE `email` = ? and `password` = ?";
         params[0] = user.email;
     }
 
@@ -53,7 +53,7 @@ router.post('/login', function (req, res, next) {
                 });
             else {
                 const payload = {
-                    name: result[0].name, surname: result[0].surname, phone: result[0].phone, email: result[0].email
+                    userID: result[0].userID, name: result[0].name, surname: result[0].surname, phone: result[0].phone, email: result[0].email
                 };
                 jwt.sign(payload, tokenSecertKey, {
                     audience: "users",

@@ -4,9 +4,9 @@ const checkToken = require('./../config/jwt');
 
 router.post('/sendpost', checkToken, (req, res, next) => {
     const post = req.body.post;
-    const token = req.headers.authorization;
-    const sql = "INSERT INTO posts SET `postContent`=?, `userID`=(SELECT `userID` from users where `email`=?)";
-    db_connection.query(sql, [post.postContent, req.email], (err, value) => {
+    const userID = req.userID;
+    const sql = "INSERT INTO posts SET `postContent`=?, `userID`=?";
+    db_connection.query(sql, [post.postContent, userID], (err, value) => {
         if (err) {
             res.json({
                 err
@@ -56,14 +56,15 @@ function getPost(postID) {
 router.post('/post/edit/:id', checkToken, (req, res) => {
     getPost(req.params.id).then(post => {
         post.postContent = req.body.post.postContent;
-        post.postTime = req.body.post.postTime;
+        post.changedTime = req.body.post.changedTime;
         const payload = {
             postContent: post.postContent,
-            postTime: post.postTime,
+            changedTime: post.changedTime,
             status: 'changed'
-        }
-        const sql = "UPDATE posts SET ? where `postID`=?";
-        db_connection.query(sql, [payload, post.postID], (err, result) => {
+        };
+        const userID = req.userID;
+        const sql = "UPDATE posts SET ? where `postID`=? and `userID`=?";
+        db_connection.query(sql, [payload, post.postID,userID], (err, result) => {
             if (err) {
                 res.json({
                     err
@@ -82,8 +83,9 @@ router.post('/post/edit/:id', checkToken, (req, res) => {
     });
 });
 router.post('/post/delete/:id', checkToken, (req, res) => {
-    const sql = "DELETE from posts where `postID`=?";
-    db_connection.query(sql, req.params.id, (err, result) => {
+    const sql = "DELETE from posts where `postID`=? and `userID`=?";
+    const userID = req.userID;
+    db_connection.query(sql, [req.params.id,userID], (err, result) => {
         if (err) {
             res.json({
                 err

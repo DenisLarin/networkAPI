@@ -8,8 +8,11 @@ function checkToken(req, res, next) {
             if (err) {
                 return res.status(400).send({error: err});
             } else {
-                req.email = decoded.email;
-                next();
+                req.userID = decoded.userID;
+                if (req.userID)
+                    next();
+                else
+                    return res.status(401).send({errorMessage: "your token is not available",errorCodeStatus:"userID is undefined"});
             }
         });
     } else {
