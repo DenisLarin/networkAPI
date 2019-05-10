@@ -120,5 +120,29 @@ router.post('/all',checkToken,(req,res)=>{
    });
 });
 
+router.post('/post/addshow/:id',checkToken,(req,res)=>{
+    const sql = "update posts set postShowCounter=postShowCounter+1 where postID = ?";
+    db_connection.query(sql,req.params.id,(error,result)=>{
+        if (error) {
+            return res.json({
+                error
+            });
+        } else {
+            if (result.changedRows > 0)
+                return res.json({
+                    status: "post shows add one",
+                    statusCode: 0,
+                });
+            else
+                return res.json({
+                    error: {
+                        errorCode: -1,
+                        errorCodeStatus: "post didn't find",
+                    }
+                });
+        }
+    });
+});
+
 
 module.exports = router;
