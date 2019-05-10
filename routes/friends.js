@@ -88,6 +88,13 @@ router.post('/cancelrequest', checkToken, (req, res) => {
         }
     });
 });
+
+
+/*TODO
+* поменять на select recipientUserID from friends where senderUserID = 1 and status='sended'
+union
+select senderUserID from  friends where recipientUserID = 1 and status='sended'
+* */
 router.post('/takeuserfriends', checkToken, (req, res) => {
     const sql = "select users.userID\n" +
         "from friends\n" +

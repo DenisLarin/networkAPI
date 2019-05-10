@@ -21,11 +21,13 @@ const account = require('./routes/account');
 const posts = require('./routes/posts');
 const comments = require('./routes/comments');
 const friends = require('./routes/friends');
+const relatives = require('./routes/relatives');
 
 app.use('/account', account);
 app.use('/posts', posts);
 app.use('/comments', comments);
 app.use('/friends', friends);
+app.use('/relatives', relatives);
 
 
 
