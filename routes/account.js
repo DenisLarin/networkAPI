@@ -30,7 +30,7 @@ router.post('/login', function (req, res, next) {
     const user = req.body.user;
     user.password = crypto.createHash('sha256').update(user.password).digest('base64');
 
-    let sql = "SELECT `userID`,``name`,`surname`,`phone`,`email` FROM users WHERE `phone` = ? and `password` = ?";
+    let sql = "SELECT `userID`,`name`,`surname`,`phone`,`email` FROM users WHERE `phone` = ? and `password` = ?";
     const params = [user.phone, user.password];
 
     if (user.email) {

@@ -20,10 +20,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 const account = require('./routes/account');
 const posts = require('./routes/posts');
 const comments = require('./routes/comments');
+const friends = require('./routes/friends');
 
 app.use('/account', account);
 app.use('/posts', posts);
 app.use('/comments', comments);
+app.use('/friends', friends);
 
 
 
