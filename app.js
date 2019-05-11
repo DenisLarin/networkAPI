@@ -24,6 +24,9 @@ const friends = require('./routes/friends');
 const relatives = require('./routes/relatives');
 const languageStatus = require('./routes/languageStatus');
 const likes = require('./routes/likes');
+const dialogs = require('./routes/dialogs');
+const dialogUsers = require('./routes/dialogUsers');
+const messages = require('./routes/messages');
 
 app.use('/account', account);
 app.use('/posts', posts);
@@ -32,6 +35,11 @@ app.use('/friends', friends);
 app.use('/relatives', relatives);
 app.use('/languagestatus', languageStatus);
 app.use('/likes', likes);
+app.use('/dialogs', dialogs);
+app.use('/dialogs/dialogusers', dialogUsers);
+app.use('/dialogs/messages', messages);
+
+
 
 
 
