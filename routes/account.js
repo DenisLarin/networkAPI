@@ -12,7 +12,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 
-const URL = "http://localhost:3000/account/confirmAccount?id=";
+const URL = "http://localhost:3000/account/confirmaccount?id=";
 
 
 router.post('/signup', function (req, res, next) {
@@ -21,10 +21,12 @@ router.post('/signup', function (req, res, next) {
     user.confirmID = crypto.createHash('sha256').update((user.email).concat(user.phone)).digest('base64');
     db_connection.query('INSERT INTO users SET ?', user, (err, result, fields) => {
         if (err)
-            res.json({
-                errorCodeNumber: err.errno,
-                errorCodeStatus: err.code,
-                errorMessage: err.sqlMessage
+            return res.status(406).json({
+               error:{
+                   errorCodeNumber: err.errno,
+                   errorCodeStatus: err.code,
+                   errorMessage: err.sqlMessage
+               }
             });
         else {
             const transporter = nodemailer.createTransport({
@@ -41,14 +43,14 @@ router.post('/signup', function (req, res, next) {
                 html: `<p>press <a href=${URL.concat(user.confirmID)}>here</a> to confirm your account</p><br/>`
             };
             transporter.sendMail(message, (err, info) => {
-                if (err){
+                if (err) {
                     return res.json({
-                       error: err,
+                        error: err,
                     });
                 }
             });
             return res.json({
-                status: "user added",
+                status: "account created",
                 statusCode: 0,
             });
         }
@@ -57,7 +59,8 @@ router.post('/signup', function (req, res, next) {
 
 });
 
-router.post('/login', function (req, res, next) {
+router.post('/signin', function (req, res, next) {
+    console.log(req.body);
     const user = req.body.user;
     user.password = crypto.createHash('sha256').update(user.password).digest('base64');
 
@@ -68,7 +71,6 @@ router.post('/login', function (req, res, next) {
         sql = "SELECT `userID`,`name`,`surname`,`phone`,`email` FROM users WHERE `email` = ? and `password` = ?";
         params[0] = user.email;
     }
-
     db_connection.query(sql, params, (err, result, fields) => {
         if (err)
             res.json({
@@ -77,12 +79,14 @@ router.post('/login', function (req, res, next) {
                 errorMessage: err.sqlMessage
             });
         else {
-            if (result.length == 0)
-                res.json({
-                    errorCodeStatus: "User didn't find",
-                    errorCode: -1
+            if (result.length == 0) {
+                return res.status(406).json({
+                    error: {
+                        errorCodeStatus: "User didn't find",
+                        errorCode: -1
+                    }
                 });
-            else {
+            } else {
                 const payload = {
                     userID: result[0].userID,
                     name: result[0].name,
@@ -104,6 +108,7 @@ router.post('/login', function (req, res, next) {
                     else
                         res.json({
                             token: token,
+                            userID: req.userID
                         });
                 });
             }
@@ -119,7 +124,7 @@ router.post('/logout', checkToken, function (req, res, next) {
     });
 });
 
-router.get('/confirmAccount', (req, res) => {
+router.get('/confirmaccount', (req, res) => {
     const payload = {
         id: req.query.id
     };
@@ -142,6 +147,13 @@ router.get('/confirmAccount', (req, res) => {
         }
     });
     console.log(req.query);
+});
+
+router.post('/checktoken', checkToken,(req, res,) => {
+    if (req.userID)
+        res.json({
+           userID: req.userID
+        });
 });
 
 
