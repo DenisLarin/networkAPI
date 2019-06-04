@@ -1,5 +1,5 @@
 const router = require('./../config/routerConnection');
-const db_connection = require('./../db/db');
+const DB = require('./../db/db');
 const checkToken = require('./../config/jwt');
 
 
@@ -140,100 +140,85 @@ router.post('/getcommentldl', checkToken, (req, res) => {
 
 router.post('/addposttlike', checkToken, (req, res) => {
     const payload = {
-        postID: req.body.payload.postID,
-        userID: req.userID
+        postID: req.body.postID,
+        userID: req.userID,
+        type: 'like'
     };
     const sql = "insert into postsLikes set ?";
-    db_connection.query(sql, payload, (error, result) => {
-        if (error) {
-            if (error.code == 'ER_DUP_ENTRY') {
-                const sql = "update postsLikes set status='like' where userID=? and postID=?";
-                db_connection.query(sql, [payload.userID, payload.postID], (error, result) => {
-                    if (error) {
+    DB.query(sql, payload).then(result => {
+        return res.json({
+            status: "like added to post",
+            statusCode: 0,
+        });
+    }).catch(error => {
+        if (error.code == 'ER_DUP_ENTRY') {
+            const sql = "update postsLikes set type='like' where userID=? and postID=?";
+            DB.query(sql, [payload.userID, payload.postID]).then(result => {
+                if (result.changedRows > 0)
+                    return res.json({
+                        status: "like added to post",
+                        statusCode: 0,
+                    });
+                else {
+                    return res.json({
+                        error: {
+                            errorCode: -1,
+                            errorCodeStatus: "didn't add like"
+                        }
+                    }).catch(error => {
                         return res.json({
                             error
                         });
-                    }
-                    if (result.changedRows > 0)
-                        return res.json({
-                            status: "like added to post",
-                            statusCode: 0,
-                        });
-                    else {
-                        return res.json({
-                            error: {
-                                errorCode: -1,
-                                errorCodeStatus: "didn't add like"
-                            }
-                        });
-                    }
-                });
-            } else {
-                return res.json({
-                    error
-                });
-            }
-        } else {
-            return res.json({
-                status: "like added to post",
-                statusCode: 0,
+                    });
+                }
             });
         }
     });
 });
+
 router.post('/addpostdislike', checkToken, (req, res) => {
     const payload = {
-        postID: req.body.payload.postID,
-        userID: req.userID
+        postID: req.body.postID,
+        userID: req.userID,
+        type: 'dislike'
     };
     const sql = "insert into postsLikes set ?";
-    db_connection.query(sql, payload, (error, result) => {
-        if (error) {
-            if (error.code == 'ER_DUP_ENTRY') {
-                const sql = "update postsLikes set status='dislike' where userID=? and postID=?";
-                db_connection.query(sql, [payload.userID, payload.postID], (error, result) => {
-                    if (error) {
+    DB.query(sql, payload).then(result => {
+        return res.json({
+            status: "dislike added to post",
+            statusCode: 0,
+        });
+    }).catch(error => {
+        if (error.code == 'ER_DUP_ENTRY') {
+            const sql = "update postsLikes set type='dislike' where userID=? and postID=?";
+            DB.query(sql, [payload.userID, payload.postID]).then(result => {
+                if (result.changedRows > 0)
+                    return res.json({
+                        status: "dislike added to post",
+                        statusCode: 0,
+                    });
+                else {
+                    return res.json({
+                        error: {
+                            errorCode: -1,
+                            errorCodeStatus: "didn't add dislike"
+                        }
+                    }).catch(error => {
                         return res.json({
                             error
                         });
-                    }
-                    if (result.changedRows > 0)
-                        return res.json({
-                            status: "dislike added to post",
-                            statusCode: 0,
-                        });
-                    else {
-                        return res.json({
-                            error: {
-                                errorCode: -1,
-                                errorCodeStatus: "didn't add dislike"
-                            }
-                        });
-                    }
-                });
-            } else {
-                return res.json({
-                    error
-                });
-            }
-        } else {
-            return res.json({
-                status: "dislike added to post",
-                statusCode: 0,
+                    });
+                }
             });
         }
     });
 });
+
 router.post('/deletepostlike', checkToken, (req, res) => {
-    const postID = req.body.payload.postID;
+    const postID = req.body.postID;
     const userID = req.userID;
     const sql = "delete from postsLikes where postID=? and userID =?"
-    db_connection.query(sql, [postID, userID], (error, result) => {
-        if (error) {
-            return res.json({
-                error
-            });
-        }
+    DB.query(sql,[postID, userID]).then(result=>{
         if (result.affectedRows > 0)
             return res.json({
                 status: "like have been removed",
@@ -246,18 +231,16 @@ router.post('/deletepostlike', checkToken, (req, res) => {
                     errorCodeStatus: "like didn't find",
                 }
             });
+    }).catch(error=>{
+        return res.json({
+            error
+        });
     });
-
 });
 router.post('/getpostldl', checkToken, (req, res) => {
-    const postID = req.body.payload.postID;
-    const sql = "select userID, status from postsLikes where postID=?";
-    db_connection.query(sql, postID, (error, result) => {
-        if (error) {
-            return res.json({
-                error
-            });
-        }
+    const postID = req.body.postID;
+    const sql = "select `postID`,userID, `type` from postsLikes where postID in (" + postID + ")";
+    DB.query(sql, null).then(result => {
         if (result.length == 0)
             return res.json({
                 error: {
@@ -269,6 +252,10 @@ router.post('/getpostldl', checkToken, (req, res) => {
             return res.json({
                 likes: result
             });
+    }).catch(error => {
+        return res.json({
+            error
+        });
     });
 });
 

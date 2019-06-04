@@ -1,17 +1,6 @@
 const router = require('./../config/routerConnection');
-const db_connection = require('./../db/db');
+const DB = require('./../db/db');
 const checkToken = require('./../config/jwt');
-
-//#добавить собеседника в диалог
-// insert into dialogUsers set dialogID=4,userID=1;
-// #удалить собесединка из диалога
-//  delete from dialogUsers where userID=1;
-// #вывести пользователей диалога
-// select userID from  dialogUsers where dialogID = 3;
-// # вывесьи диалоги пользователя
-// select dialogID from dialogUsers where userID = 1;
-// #изменить роль пользователя в диалоге
-// update dialogUsers set role='admin' where dialogID=3 and userID=1;
 
 
 //TODO check admin
@@ -21,20 +10,20 @@ router.post('/addusertodialog', checkToken, (req, res) => {
         userID: req.body.dialogID.userID,
     };
 
-    const sql = "insert into dialogUsers set dialogID=4,userID=1";
-    db_connection.query(sql, payload, (error, result) => {
-        if (error) {
-            res.json({
-                error
-            });
-        } else {
-            res.json({
-                status: "user added to dialog",
-                statusCode: 0,
-            });
-        }
+    const sql = "insert into dialogUsers set dialogID=?,userID=?";
+
+    DB.query(sql, payload).then(result => {
+        res.json({
+            status: "user added to dialog",
+            statusCode: 0,
+        });
+    }).catch(error => {
+        res.json({
+            error
+        });
     });
 });
+
 //TODO check admin
 router.post('/deleteuserfromdialog', checkToken, (req, res) => {
     const payload = {
@@ -42,12 +31,9 @@ router.post('/deleteuserfromdialog', checkToken, (req, res) => {
         dialogID: req.body.dialog.dialogID,
     };
     const sql = "delete from dialogUsers where userID=? and dialogID=?";
-    db_connection.query(sql, [payload.userID, payload.dialogID], (error, result) => {
-        if (error) {
-            res.json({
-                error
-            });
-        } else if (result.affectedRows > 0) {
+
+    DB.query(sql, [payload.userID, payload.dialogID]).then(result => {
+        if (result.affectedRows > 0) {
             res.json({
                 status: "user deleted from dialog",
                 statusCode: 0,
@@ -58,18 +44,20 @@ router.post('/deleteuserfromdialog', checkToken, (req, res) => {
                 statusCode: -1,
             });
         }
+    }).catch(error => {
+        res.json({
+            error
+        });
     });
+
 
 });
 router.post('/takedialogusers', checkToken, (req, res) => {
     const dialogID = req.body.dialog.dialogID;
     const sql = "select userID from  dialogUsers where dialogID = ?";
-    db_connection.query(sql, dialogID, (error, result) => {
-        if (error) {
-            return res.json({
-                error
-            });
-        }
+
+
+    DB.query(sql, dialogID).then(result => {
         if (result.length == 0)
             return res.json({
                 error: {
@@ -81,17 +69,18 @@ router.post('/takedialogusers', checkToken, (req, res) => {
             return res.json({
                 users: result
             });
+    }).catch(error => {
+        return res.json({
+            error
+        });
     });
 });
+
 router.post('/takeuserdialogs', checkToken, (req, res) => {
     const userID = req.userID;
     const sql = "select dialogID from  dialogUsers where userID = ?";
-    db_connection.query(sql, userID, (error, result) => {
-        if (error) {
-            return res.json({
-                error
-            });
-        }
+
+    DB.query(sql, userID).then(result => {
         if (result.length == 0)
             return res.json({
                 error: {
@@ -103,7 +92,12 @@ router.post('/takeuserdialogs', checkToken, (req, res) => {
             return res.json({
                 dialogs: result
             });
+    }).catch(error => {
+        return res.json({
+            error
+        });
     });
+
 });
 //TODO проверка на админа
 router.post('/changeuserrole', checkToken, (req, res) => {
@@ -113,12 +107,9 @@ router.post('/changeuserrole', checkToken, (req, res) => {
         role: req.body.dialog.role
     };
     const sql = "update dialogUsers set role=? where dialogID=? and userID=?";
-    db_connection.query(sql, [payload.role,payload.dialogID, payload.userID], (error, result) => {
-        if (error) {
-            res.json({
-                error
-            });
-        } else if (result.changedRows > 0) {
+
+    DB.query(sql, [payload.role, payload.dialogID, payload.userID]).then(result => {
+        if (result.changedRows > 0) {
             res.json({
                 status: "user status changed",
                 statusCode: 0,
@@ -129,7 +120,12 @@ router.post('/changeuserrole', checkToken, (req, res) => {
                 statusCode: -1,
             });
         }
+    }).catch(error => {
+        return res.json({
+            error
+        });
     });
+
 });
 
 
@@ -141,17 +137,17 @@ router.post('/adduserstosingledialog', checkToken, (req, res) => {
         userID2: req.body.dialog.userID,
     };
     const sql = "INSERT INTO dialogUsers(dialogID,userID) VALUES(?,?),(?,?)";
-    db_connection.query(sql, [payload.dialogID, payload.userID1, payload.dialogID, payload.userID2], (error, result) => {
-        if (error) {
-            res.json({
-                error
-            });
-        } else {
-            res.json({
-                status: "single dialog created",
-                statusCode: 0,
-            });
-        }
+
+
+    DB.query(sql, [payload.dialogID, payload.userID1, payload.dialogID, payload.userID2]).then(result => {
+        res.json({
+            status: "single dialog created",
+            statusCode: 0,
+        });
+    }).catch(error => {
+        return res.json({
+            error
+        });
     });
 });
 
@@ -160,12 +156,7 @@ router.post('/takeuserdialogswithmessages', checkToken, (req, res) => {
         "from dialogUsers\n" +
         "where (select count(message) from messages where messages.dialogID = dialogUsers.dialogID) > 0\n" +
         "and userID = ?;"
-    db_connection.query(sql, req.userID, (error, result) => {
-        if (error) {
-            return res.json({
-                error
-            });
-        }
+    DB.query(sql, req.userID).then(result => {
         if (result.length == 0)
             return res.json({
                 error: {
@@ -177,6 +168,10 @@ router.post('/takeuserdialogswithmessages', checkToken, (req, res) => {
             return res.json({
                 dialogs: result
             });
+    }).catch(error => {
+        return res.json({
+            error
+        });
     });
 });
 

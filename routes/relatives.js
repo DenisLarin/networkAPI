@@ -1,5 +1,5 @@
 const router = require('./../config/routerConnection');
-const db_connection = require('./../db/db');
+const DB = require('./../db/db');
 const checkToken = require('./../config/jwt');
 
 

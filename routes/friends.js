@@ -1,5 +1,5 @@
 const router = require('./../config/routerConnection');
-const db_connection = require('./../db/db');
+const DB = require('./../db/db');
 const checkToken = require('./../config/jwt');
 
 
@@ -17,22 +17,22 @@ router.post('/sendfiendrequest', checkToken, (req, res) => {
         recipientUserID: req.body.user.recipientUserID
     };
     const sql = "insert into friends set ?";
-    db_connection.query(sql, payLoad, (error, result) => {
-        if (error) {
-            return res.json({
-                error: {
-                    errorCode: error.code,
-                    errno: error.errno,
-                    sqlMessage: error.sqlMessage
-                }
-            });
-        } else {
-            return res.json({
-                status: "request sanded",
-                statusCode: 0,
-            });
-        }
+
+    DB.query(sql, payLoad).then(result => {
+        return res.json({
+            status: "request sanded",
+            statusCode: 0,
+        });
+    }).catch(error => {
+        return res.json({
+            error: {
+                errorCode: error.code,
+                errno: error.errno,
+                sqlMessage: error.sqlMessage
+            }
+        });
     });
+
 });
 router.post('/acceptrequest', checkToken, (req, res) => {
     const payload = {
@@ -40,26 +40,30 @@ router.post('/acceptrequest', checkToken, (req, res) => {
         changedStatusTime: new Date()
     };
     const sql = ("UPDATE friends set ? where recipientUserID=? and senderUserID=?");
-    db_connection.query(sql, [payload, req.userID, req.body.user.requestUserID], (error, result) => {
-        if (error) {
+
+    DB.query(sql, [payload, req.userID, req.body.user.requestUserID]).then(result => {
+        if (result.changedRows > 0)
             return res.json({
-                error
+                status: "status become accepted",
+                statusCode: 0,
             });
-        } else {
-            if (result.changedRows > 0)
-                return res.json({
-                    status: "status become accepted",
-                    statusCode: 0,
-                });
-            else
-                return res.json({
-                    error: {
-                        errorCode: -1,
-                        errorCodeStatus: "friend relationships didn't find",
-                    }
-                });
-        }
+        else
+            return res.json({
+                error: {
+                    errorCode: -1,
+                    errorCodeStatus: "friend relationships didn't find",
+                }
+            });
+    }).catch(error => {
+        return res.json({
+            error: {
+                errorCode: error.code,
+                errno: error.errno,
+                sqlMessage: error.sqlMessage
+            }
+        });
     });
+
 });
 router.post('/cancelrequest', checkToken, (req, res) => {
     const payload = {
@@ -67,25 +71,29 @@ router.post('/cancelrequest', checkToken, (req, res) => {
         changedStatusTime: new Date()
     };
     const sql = ("UPDATE friends set ? where recipientUserID=? and senderUserID=?");
-    db_connection.query(sql, [payload, req.userID, req.body.user.requestUserID], (error, result) => {
-        if (error) {
+
+
+    DB.query(sql, [payload, req.userID, req.body.user.requestUserID]).then(result => {
+        if (result.changedRows > 0)
             return res.json({
-                error
+                status: "status become canceled",
+                statusCode: 0,
             });
-        } else {
-            if (result.changedRows > 0)
-                return res.json({
-                    status: "status become canceled",
-                    statusCode: 0,
-                });
-            else
-                return res.json({
-                    error: {
-                        errorCode: -1,
-                        errorCodeStatus: "friend relationships didn't find",
-                    }
-                });
-        }
+        else
+            return res.json({
+                error: {
+                    errorCode: -1,
+                    errorCodeStatus: "friend relationships didn't find",
+                }
+            });
+    }).catch(error => {
+        return res.json({
+            error: {
+                errorCode: error.code,
+                errno: error.errno,
+                sqlMessage: error.sqlMessage
+            }
+        });
     });
 });
 

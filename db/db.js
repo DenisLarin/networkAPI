@@ -1,12 +1,39 @@
 const mysql = require('mysql');
 const config = require('./../config/config').db;
 
-const db_connection = mysql.createConnection(config);
+class DB {
+    constructor() {
+        this.connection = mysql.createPool({
+            connectionLimit: 100,
+            host: config.host,
+            user: config.user,
+            password: config.password,
+            database: config.database,
+            debug: false,
+            socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock'
+        });
+        if (this.connection){
+            console.log("connected to DB");
+        }
+    }
 
-db_connection.connect(err => {
-    if (err) throw console.log(err);
-    console.log("connect to DB success");
-});
-
-
-module.exports = db_connection;
+    query = (sql, args) => {
+        return new Promise(((resolve, reject) => {
+            this.connection.query(sql,args,(err,result)=>{
+                if (err)
+                    return reject(err);
+                resolve(result);
+            });
+        }));
+    };
+    close = ()=>{
+        return new Promise(((resolve, reject) => {
+            this.connection.end(err=>{
+                if (err)
+                    return reject(err);
+                resolve();
+            });
+        }));
+    };
+}
+module.exports = new DB();
