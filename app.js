@@ -46,6 +46,7 @@ const dialogs = require('./routes/dialogs');
 const dialogUsers = require('./routes/dialogUsers');
 const messages = require('./routes/messages');
 const user = require('./routes/user');
+const search = require('./routes/search')
 
 app.use('/account', account);
 app.use('/posts', posts);
@@ -58,6 +59,7 @@ app.use('/dialogs', dialogs);
 app.use('/dialogs/dialogusers', dialogUsers);
 app.use('/dialogs/messages', messages);
 app.use('/user',user);
+app.use('/search',search);
 
 var debug = require('debug')('api:server');
 var http = require('http');
